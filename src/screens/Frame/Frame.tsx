@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAdminData } from "../Admin/admin-data";
 import {
   CheckCircle2,
   Users,
@@ -110,6 +111,8 @@ export const Frame = (): JSX.Element => {
   const [openDropdown, setOpenDropdown] = useState<"guests" | "table" | "date" | null>(null);
   const [name, setName] = useState<string>("");
   const [phone, setPhone] = useState<string>("+7");
+  const { tables, addBooking } = useAdminData();
+
   const [bookingMessage, setBookingMessage] = useState<string>("");
   const [showMessage, setShowMessage] = useState<boolean>(false);
 
@@ -161,6 +164,16 @@ export const Frame = (): JSX.Element => {
     }
   };
 
+  const getMappedTableId = (label: string) => {
+    const tableMap: Record<string, number> = {
+      Терраса: 8,
+      "У окна": 1,
+      VIP: 7,
+      "Для двоих": 2,
+    };
+    return tableMap[label] ?? 1;
+  };
+
   const handleBooking = () => {
     if (!name.trim() || !phone.trim() || phone.trim() === "+7") {
       setBookingMessage("Пожалуйста, заполните имя и телефон, чтобы завершить бронирование.");
@@ -168,10 +181,23 @@ export const Frame = (): JSX.Element => {
       return;
     }
 
+    addBooking({
+      name: name.trim(),
+      phone: phone.trim(),
+      date: selectedDate,
+      time: selectedTime,
+      guests: guestCount,
+      tableId: getMappedTableId(selectedTable),
+      status: "pending",
+      menuIds: [],
+    });
+
     setBookingMessage(
-      `Поздравляем, ${name}! Ваш столик на ${selectedDate} в ${selectedTime} для ${guestCount} гостей забронирован. Ждём вас в ресторане Healthy Restaurant!`
+      `Поздравляем, ${name}! Ваш столик на ${selectedDate} в ${selectedTime} для ${guestCount} гостей сохранён в админке.`
     );
     setShowMessage(true);
+    setName("");
+    setPhone("+7");
 
     setTimeout(() => {
       setShowMessage(false);
